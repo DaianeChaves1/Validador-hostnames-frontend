@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hostname Insight</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;600;700&family=Montserrat:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+html, body {
+    margin: 0;
+    font-family: 'Space Grotesk', sans-serif;
+    min-height: 100%;
+    background: linear-gradient(135deg, #64d8cb, #4fc1c0);
+    background-size: 400% 400%;
+    animation: gradientMove 20s ease infinite;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+@keyframes gradientMove {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+h1 {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-size: 3.2rem;
+    margin: 1rem 0;
+    background: rgba(0,0,0,0.25);
+    padding: 1rem 1.5rem;
+    border-radius: 16px;
+    backdrop-filter: blur(8px);
+}
+
+.logo-container {
+    width: 100px; 
+    height: 100px;
+}
+
+.globe {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, #0ff, #00bfa5);
+    box-shadow: 0 0 15px #0ff, 0 0 30px #0ff, 0 0 45px #0ff, inset 0 0 15px #0ff;
+    overflow: hidden;
+    position: relative;
+}
+
+.globe svg {
+    width: 220%;
+    height: 120%;
+    position: absolute;
+    left: -60%;
+    top: -10%;
+    fill: rgba(0,255,255,0.3);
+    stroke: #0ff;
+    stroke-width: 1;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+    animation: rotateMap 3.33s linear infinite;
+    filter: drop-shadow(0 0 6px #0ff) drop-shadow(0 0 12px #0ff) drop-shadow(0 0 18px #0ff);
+}
+
+@keyframes rotateMap {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(50%); }
+}
+
+.card {
+    background: rgba(255,255,255,0.92);
+    color: #333;
+    padding: 2rem 3rem;
+    border-radius: 18px;
+    width: 98%;
+    max-width: 800px;
+    margin-bottom: 2rem;
+    box-sizing: border-box;
+    font-size: 1.1rem;
+}
+
+label, small { display: block; margin-bottom: 0.5rem; }
+
+textarea {
+    width: 100%;
+    min-height: 140px; 
+    padding: 1.2rem 1.5rem;
+    border-radius: 12px;
+    font-family: inherit;
+    font-size: 1.05rem;
+    margin-bottom: 0.5rem;
+    box-sizing: border-box;
+    border: 1px solid rgba(0,0,0,0.2);
+}
+
+button {
+    width: 100%;
+    margin-top: 0.5rem;
+    padding: 1.2rem;
+    background: #1f7a4c;
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+button:hover { background-color: #16603a; transform: translateY(-2px); }
+
+#result { display: none; width: 98%; max-width: 800px; margin-bottom: 2rem; }
+
+.result-card {
+    background: rgba(0,0,0,0.3);
+    border-radius: 16px;
+    padding: 1.5rem 2rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 0 12px #0ff, 0 0 24px #0ff;
+    transition: transform 0.2s;
+    font-size: 1rem;
+}
+
+.result-card:hover { transform: translateY(-3px); }
+
+.result-card h3 { margin: 0 0 0.5rem 0; color: #0ff; font-size: 1.2rem; }
+.result-card p { margin: 0.3rem 0; font-size: 1rem; }
+
+.valid { border-left: 4px solid #4CAF50; }
+.disallowed { border-left: 4px solid #F44336; }
+.unknown { border-left: 4px solid #FFC107; }
+
+footer {
+    background: rgba(0,0,0,0.25);
+    padding: 1.2rem;
+    border-radius: 12px;
+    width: 95%;
+    max-width: 780px;
+    text-align: center;
+    margin-bottom: 2rem;
+    font-size: 0.95rem;
+}
+
+footer a { color: #fff; margin: 0 8px; text-decoration: none; font-weight: 500; }
+footer a:hover { text-decoration: underline; }
+
+.social { display: flex; justify-content: center; gap: 16px; margin-top: 0.5rem; }
+
+.social a {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 12px #0ff, 0 0 24px #0ff;
+}
+
+.social img { width: 24px; height: 24px; }
+
+.language-container { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; }
+
+.modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); justify-content: center; align-items: center; }
+.modal-content { background: #fff; color: #333; padding: 2rem; border-radius: 12px; max-width: 650px; width: 90%; max-height: 80%; overflow-y: auto; font-family: 'Montserrat', sans-serif; position: relative; }
+.modal-close { position: absolute; top: 10px; right: 15px; font-size: 1.2rem; cursor: pointer; color: #d32f2f; font-weight: bold; }
+
+</style>
+</head>
+<body>
+
+<h1>
+    <div class="logo-container">
+        <div class="globe">
+            <svg viewBox="0 0 1000 500">
+                <path d="M100 250 L150 200 L220 210 L280 190 L340 220 L300 260 L220 240 Z" fill="rgba(0,255,255,0.35)" stroke="#0ff"/>
+                <path d="M400 150 L460 120 L520 140 L580 130 L640 160 L600 200 L520 190 Z" fill="rgba(0,255,255,0.35)" stroke="#0ff"/>
+                <path d="M720 200 L760 180 L820 200 L860 230 L840 260 L780 240 Z" fill="rgba(0,255,255,0.35)" stroke="#0ff"/>
+                <path d="M500 300 L520 330 L500 360 L470 350 L460 320 Z" fill="rgba(0,255,255,0.35)" stroke="#0ff"/>
+            </svg>
+        </div>
+    </div>
+    <span id="title-text">Hostname Insight</span>
+</h1>
+
+<div class="language-container">
+    <label id="language-label" for="language-selector">Selecione idioma:</label>
+    <select id="language-selector" onchange="changeLanguage(event)">
+        <option value="pt" selected>Português</option>
+        <option value="en">English</option>
+    </select>
+</div>
+
+<div class="card">
+    <form onsubmit="return validateHostnames()">
+        <label for="hostname" id="hostname-label">Hostname ou wildcard:</label>
+        <textarea id="hostname" placeholder="corporacao.com, *.corporacao.com"></textarea>
+        <small id="hostname-example">Exemplo: <code>app.corporacao.com</code>, <code>*.corporacao.com</code></small>
+        <button type="submit" id="analyze-button">Analisar agora</button>
+    </form>
+</div>
+
+<div id="result"></div>
+
+<footer>
+    <div>
+        <a href="#" id="about-link">Sobre</a> |
+        <a href="#" id="privacy-link">Política de Privacidade</a> |
+        <a href="#" id="contact-link">Contato</a>
+    </div>
+    <div class="social">
+        <a href="#" aria-label="X">
+            <img src="https://logo.svgcdn.com/logos/x.png" alt="X">
+        </a>
+        <a href="#"><img src="https://upload.wikimedia.org/wikipedia/commons/0/05/Facebook_Logo_%282019%29.png" alt="Facebook"></a>
+        <a href="#"><img src="https://upload.wikimedia.org/wikipedia/commons/e/e7/Instagram_logo_2016.svg" alt="Instagram"></a>
+        <a href="#"><img src="https://upload.wikimedia.org/wikipedia/commons/c/ca/LinkedIn_logo_initials.png" alt="LinkedIn"></a>
+    </div>
+</footer>
+
+<script>
+let sessionHistory = [];
+
+function simulateBackendCheck(hostnames) {
+    return hostnames.map(host => {
+        let status = "UNKNOWN";
+        let reason = "Hostname não encontrado na whitelist";
+        let ips = [];
+        let rtt = null;
+
+        if (/^(?!:\/\/)([A-Za-z0-9-]+\.)+[A-Za-z]{2,6}$/.test(host)) {
+            status = "VALID";
+            reason = "Hostname permitido";
+            ips = ["192.168.1.1"];
+            rtt = Math.floor(Math.random()*100);
+        }
+        if (/^\*\.[A-Za-z0-9-]+\.[A-Za-z]{2,}$/.test(host)) {
+            status = "DISALLOWED";
+            reason = "Wildcard não permitido";
+        }
+        return { hostname: host, status, reason, ips, rtt, tld: host.split('.').pop() };
+    });
+}
+
+function validateHostnames() {
+    const input = document.getElementById("hostname").value;
+    const hostnames = input.split(/[\s,]+/).filter(h => h.trim() !== "");
+    const resultsContainer = document.getElementById("result");
+    resultsContainer.innerHTML = "";
+
+    const backendResults = simulateBackendCheck(hostnames);
+
+    backendResults.forEach(res => {
+        const div = document.createElement("div");
+        div.className = `result-card ${res.status.toLowerCase()}`;
+        div.innerHTML = `
+            <h3>${res.hostname}</h3>
+            <p><strong>Status:</strong> ${res.status}</p>
+            <p><strong>Motivo:</strong> ${res.reason}</p>
+            ${res.ips.length ? `<p><strong>IPs:</strong> ${res.ips.join(", ")}</p>` : ''}
+            ${res.rtt !== null ? `<p><strong>RTT:</strong> ${res.rtt} ms</p>` : ''}
+            <p><strong>TLD:</strong> .${res.tld}</p>
+        `;
+        resultsContainer.appendChild(div);
+        sessionHistory.push(res);
+    });
+
+    resultsContainer.style.display = "block";
+    return false;
+}
+
+function createModal(id, title, content) {
+    const modal = document.createElement("div");
+    modal.className = "modal";
+    modal.id = id;
+
+    const modalContent = document.createElement("div");
+    modalContent.className = "modal-content";
+    modalContent.innerHTML = `<span class="modal-close">&times;</span><h2>${title}</h2><p>${content}</p>`;
+    modal.appendChild(modalContent);
+    document.body.appendChild(modal);
+
+    modal.querySelector(".modal-close").onclick = () => { modal.style.display = "none"; }
+    window.onclick = (event) => { if(event.target == modal) modal.style.display = "none"; }
+    return modal;
+}
+
+const aboutModal = createModal("about-modal", "Sobre", `
+Curso: Bacharelado em Sistemas de Informação<br>
+Disciplina: Sistemas de Informação<br>
+Alunas: Daiane Chaves, Jucicleide Santos, Camily Santos, Renata Pereira<br>
+Dezembro 2025
+`);
+const privacyModal = createModal("privacy-modal", "Política de Privacidade", "Os dados fornecidos são usados apenas para validação de hostnames.");
+const contactModal = createModal("contact-modal", "Contato", "Email: contato@hostnameinsight.com");
+
+document.getElementById("about-link").onclick = () => aboutModal.style.display = "flex";
+document.getElementById("privacy-link").onclick = () => privacyModal.style.display = "flex";
+document.getElementById("contact-link").onclick = () => contactModal.style.display = "flex";
+
+function changeLanguage(event) {
+    const language = event.target.value;
+    const texts = {
+        pt: {
+            title: "Hostname Insight",
+            label: "Hostname ou wildcard:",
+            example: "Exemplo: <code>app.corporacao.com</code>, <code>*.corporacao.com</code>",
+            button: "Analisar agora",
+            selectLabel: "Selecione idioma:",
+            aboutLink: "Sobre",
+            privacyLink: "Política de Privacidade",
+            contactLink: "Contato",
+            aboutModalTitle: "Sobre",
+            aboutModalContent: `
+                Curso: Bacharelado em Sistemas de Informação<br>
+                Disciplina: Sistemas de Informação<br>
+                Alunas: Daiane Chaves, Jucicleide Santos, Camily Santos, Renata Pereira<br>
+                Dezembro 2025
+            `,
+            privacyModalTitle: "Política de Privacidade",
+            privacyModalContent: "Os dados fornecidos são usados apenas para validação de hostnames.",
+            contactModalTitle: "Contato",
+            contactModalContent: "Email: contato@hostnameinsight.com"
+        },
+        en: {
+            title: "Hostname Insight",
+            label: "Hostname or wildcard:",
+            example: "Example: <code>app.corporation.com</code>, <code>*.corporation.com</code>",
+            button: "Analyze now",
+            selectLabel: "Select language:",
+            aboutLink: "About",
+            privacyLink: "Privacy Policy",
+            contactLink: "Contact",
+            aboutModalTitle: "About",
+            aboutModalContent: `
+                Course: Bachelor in Information Systems<br>
+                Subject: Information Systems<br>
+                Students: Daiane Chaves, Jucicleide Santos, Camily Santos, Renata Pereira<br>
+                December 2025
+            `,
+            privacyModalTitle: "Privacy Policy",
+            privacyModalContent: "The provided data is used only for hostname validation.",
+            contactModalTitle: "Contact",
+            contactModalContent: "Email: contact@hostnameinsight.com"
+        }
+    };
+
+    const t = texts[language];
+    document.getElementById("title-text").textContent = t.title;
+    document.getElementById("hostname-label").textContent = t.label;
+    document.getElementById("hostname-example").innerHTML = t.example;
+    document.getElementById("analyze-button").textContent = t.button;
+    document.getElementById("language-label").textContent = t.selectLabel;
+
+    document.getElementById("about-link").textContent = t.aboutLink;
+    document.getElementById("privacy-link").textContent = t.privacyLink;
+    document.getElementById("contact-link").textContent = t.contactLink;
+
+    aboutModal.querySelector("h2").textContent = t.aboutModalTitle;
+    aboutModal.querySelector("p").innerHTML = t.aboutModalContent;
+    privacyModal.querySelector("h2").textContent = t.privacyModalTitle;
+    privacyModal.querySelector("p").innerHTML = t.privacyModalContent;
+    contactModal.querySelector("h2").textContent = t.contactModalTitle;
+    contactModal.querySelector("p").innerHTML = t.contactModalContent;
+}
+</script>
+
+</body>
+</html>
