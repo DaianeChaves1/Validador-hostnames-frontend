@@ -168,7 +168,6 @@ footer a:hover { text-decoration: underline; }
 .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); justify-content: center; align-items: center; }
 .modal-content { background: #fff; color: #333; padding: 2rem; border-radius: 12px; max-width: 650px; width: 90%; max-height: 80%; overflow-y: auto; font-family: 'Montserrat', sans-serif; position: relative; }
 .modal-close { position: absolute; top: 10px; right: 15px; font-size: 1.2rem; cursor: pointer; color: #d32f2f; font-weight: bold; }
-
 </style>
 </head>
 <body>
@@ -224,24 +223,43 @@ footer a:hover { text-decoration: underline; }
 
 <script>
 let sessionHistory = [];
+let currentLanguage = 'pt'; // Idioma atual
+
+const statusTexts = {
+    pt: {
+        VALID: "Hostname permitido",
+        VALID_WILDCARD: "Wildcard permitido",
+        UNKNOWN: "Formato inválido"
+    },
+    en: {
+        VALID: "Hostname allowed",
+        VALID_WILDCARD: "Wildcard allowed",
+        UNKNOWN: "Invalid format"
+    }
+};
 
 function simulateBackendCheck(hostnames) {
     return hostnames.map(host => {
         let status = "UNKNOWN";
-        let reason = "Hostname não encontrado na whitelist";
+        let reason = statusTexts[currentLanguage].UNKNOWN;
         let ips = [];
         let rtt = null;
 
-        if (/^(?!:\/\/)([A-Za-z0-9-]+\.)+[A-Za-z]{2,6}$/.test(host)) {
+        if (/^\*\.(?:[A-Za-z0-9-]+\.)+[A-Za-z]{2,}$/.test(host)) {
             status = "VALID";
-            reason = "Hostname permitido";
+            reason = statusTexts[currentLanguage].VALID_WILDCARD;
             ips = ["192.168.1.1"];
-            rtt = Math.floor(Math.random()*100);
+            rtt = Math.floor(Math.random() * 100);
+        } else if (/^(?:[A-Za-z0-9-]+\.)+[A-Za-z]{2,6}$/.test(host)) {
+            status = "VALID";
+            reason = statusTexts[currentLanguage].VALID;
+            ips = ["192.168.1.1"];
+            rtt = Math.floor(Math.random() * 100);
+        } else {
+            status = "UNKNOWN";
+            reason = statusTexts[currentLanguage].UNKNOWN;
         }
-        if (/^\*\.[A-Za-z0-9-]+\.[A-Za-z]{2,}$/.test(host)) {
-            status = "DISALLOWED";
-            reason = "Wildcard não permitido";
-        }
+
         return { hostname: host, status, reason, ips, rtt, tld: host.split('.').pop() };
     });
 }
@@ -273,6 +291,7 @@ function validateHostnames() {
     return false;
 }
 
+// Funções de modais
 function createModal(id, title, content) {
     const modal = document.createElement("div");
     modal.className = "modal";
@@ -302,7 +321,9 @@ document.getElementById("about-link").onclick = () => aboutModal.style.display =
 document.getElementById("privacy-link").onclick = () => privacyModal.style.display = "flex";
 document.getElementById("contact-link").onclick = () => contactModal.style.display = "flex";
 
+// Função de mudança de idioma
 function changeLanguage(event) {
+    currentLanguage = event.target.value;
     const language = event.target.value;
     const texts = {
         pt: {
